@@ -43,33 +43,33 @@ function Hunspell() {
 
   function allocStr(str) {
     var len = (str.length<<2)+1;
-    var ret = Runtime.stackAlloc(len);
+    var ret = stackAlloc(len);
     stringToUTF8(str, ret, len);
     return ret;
   }
 
   //Hunspell_create
   var handle = (function(aff, dic) {
-    var stack = Runtime.stackSave();
+    var stack = stackSave();
     var affPtr = allocStr(aff);
     var dicPtr = allocStr(dic);
     var ret = _Hunspell_create(affPtr, dicPtr);
-    Runtime.stackRestore(stack);
+    stackRestore(stack);
     return ret
   })('index.aff', 'index.dic')
 
   this.spell = function (word) {
-    var stack = Runtime.stackSave();
+    var stack = stackSave();
     var wordPtr = allocStr(word);
     var ret = _Hunspell_spell(handle, wordPtr);
-    Runtime.stackRestore(stack);
+    stackRestore(stack);
     return !!ret;
   }
 
   this.suggest = function (word) {
-    var stack = Runtime.stackSave();
+    var stack = stackSave();
     var wordPtr = allocStr(word);
-    var slst = Runtime.stackAlloc(4);
+    var slst = stackAlloc(4);
     var count = _Hunspell_suggest(handle, slst, wordPtr);
     var results = [];
     var strArrayPtr = getValue(slst, "*");
@@ -77,7 +77,7 @@ function Hunspell() {
       results.push(Pointer_stringify(getValue(strArrayPtr + i * 4, "*")));
     }
     _Hunspell_free_list(handle, slst, count);
-    Runtime.stackRestore(stack);
+    stackRestore(stack);
     return results;
   }
   this.destory = function () {
